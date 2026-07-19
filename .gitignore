@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+venv*/
+
+# dotenv and secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Byte-compiled / logs / databases
+*.log
+*.sqlite3
+*.db
+app_data.db
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# VS Code and IDEs
+.vscode/
+.idea/
+*.iml
+
+# macOS
+.DS_Store
+
+# Node / frontend
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+frontend/node_modules/
+frontend/dist/
+
+# Uploads / user data (do NOT commit uploaded CSVs)
+backend/uploads/
+backend/uploads/*
+uploads/
+uploads/*
+
+# Tests / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Celery
+celerybeat-schedule
+
+# Docker / compose local overrides
+docker-compose.override.yml
+
+# Misc
+*.sqlite
+*.bak
+*.swp

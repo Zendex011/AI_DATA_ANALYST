@@ -1,0 +1,197 @@
+/* ===== Design tokens =====
+   Instrument-panel identity: dark navy-charcoal base, amber + teal duotone
+   accents (not a single neon), monospace for anything data-shaped (schema
+   readouts, code, filenames), a restrained display face for the few
+   moments that need real character (app name, empty states). */
+
+:root {
+  --bg: #14161c;
+  --surface: #1c2029;
+  --surface-raised: #242938;
+  --border: #2c313f;
+  --border-soft: #232733;
+
+  --text: #e8e6e0;
+  --text-muted: #8b90a0;
+  --text-faint: #5a5f6e;
+
+  --accent: #e8a33d;
+  --accent-strong: #f2b85c;
+  --accent-dim: #3a3222;
+
+  --secondary: #4fb8a8;
+  --secondary-dim: #1f3532;
+
+  --danger: #e0645a;
+  --danger-dim: #3a2422;
+
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --radius: 6px;
+  --radius-lg: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input,
+textarea,
+button {
+  font-size: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: var(--accent-dim);
+  color: var(--accent-strong);
+}
+
+/* Visible keyboard focus everywhere -- not just the mouse-user's app */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* ===== Buttons ===== */
+
+.btn {
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.btn:hover {
+  border-color: var(--text-faint);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #1a1508;
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+.btn-ghost:hover {
+  background: var(--surface-raised);
+  border-color: var(--border);
+}
+
+.btn-danger-outline {
+  background: transparent;
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.btn-danger-outline:hover {
+  background: var(--danger-dim);
+}
+
+/* ===== Inputs ===== */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.field input,
+.field textarea {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 11px;
+  color: var(--text);
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: var(--accent);
+}
+
+.field-error {
+  color: var(--danger);
+  font-size: 12px;
+}
+
+/* ===== Scrollbars (subtle, not default-ugly) ===== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
+}
