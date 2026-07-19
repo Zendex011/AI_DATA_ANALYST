@@ -296,48 +296,6 @@ Automatically creates visualizations whenever the analytical result benefits fro
 
 ---
 
-# Project Structure
-
-```
-AI_DATA_ANALYST/
-
-│
-
-├── backend/
-│
-├── app/
-│
-├── agents/
-│      LangGraph workflows
-│
-├── api/
-│      REST API routes
-│
-├── auth/
-│      Authentication
-│
-├── core/
-│      AI services
-│      SQL execution
-│      Validation
-│      Charts
-│
-├── db/
-│      Database models
-│
-├── frontend/
-│
-├── components/
-│
-├── pages/
-│
-├── services/
-│
-└── Docker
-```
-
----
-
 # Supported Data Sources
 
 The platform currently supports
@@ -496,26 +454,6 @@ Return Insights
 - Multi-file Analysis
 - Business KPI Monitoring
 - Cloud Deployment
-
----
-
-# Screenshots
-
-> Dashboard
-
-<img src="docs/dashboard.png" width="900"/>
-
-> CSV Analysis
-
-<img src="docs/csv-analysis.png" width="900"/>
-
-> SQL Analysis
-
-<img src="docs/sql-analysis.png" width="900"/>
-
-> AI Chat
-
-<img src="docs/chat.png" width="900"/>
 
 ---
 
