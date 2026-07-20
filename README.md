@@ -470,6 +470,14 @@ Every AI-generated response can be traced back to the generated SQL query or Pyt
 
 ---
 
+<img width="1917" height="1097" alt="Screenshot 2026-07-19 215937" src="https://github.com/user-attachments/assets/85ba1934-631a-4b94-94c9-02c4404bd436" />
+<img width="1917" height="1082" alt="Screenshot 2026-07-19 220333" src="https://github.com/user-attachments/assets/14963deb-e23c-44fa-aa5d-96df6738665d" />
+<img width="1917" height="1086" alt="Screenshot 2026-07-19 220204" src="https://github.com/user-attachments/assets/4da1dde0-91c1-4706-adb0-4eb8ba5be707" />
+<img width="1917" height="1092" alt="Screenshot 2026-07-19 220048" src="https://github.com/user-attachments/assets/64b43fa1-b085-4bad-9577-95adb0647610" />
+<img width="1917" height="1132" alt="Screenshot 2026-07-19 220019" src="https://github.com/user-attachments/assets/f981e3bc-bff4-4ee4-89ae-a80a4939d40b" />
+
+
+
 # Contributing
 
 Contributions are welcome.
