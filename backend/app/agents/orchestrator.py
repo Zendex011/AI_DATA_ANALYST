@@ -58,11 +58,12 @@ class AgentState(TypedDict):
     chart_base64: Optional[str]
     chart_error: Optional[str]
     wants_chart: bool
+    gemini_api_key: Optional[str]
 
 
 def plan_node(state: AgentState) -> AgentState:
     """LLM writes pandas code to answer the question."""
-    llm = get_llm(temperature=0, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_CODE)
+    llm = get_llm(temperature=0, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_CODE, api_key=state.get("gemini_api_key"))
 
     schema = build_schema_summary(state["row_count"], state["columns_with_dtypes"])
     prompt = f"""You are a data analyst. A user uploaded a CSV and asked:
@@ -101,7 +102,7 @@ def fix_node(state: AgentState) -> AgentState:
     Sends the failed code + error back to the LLM for exactly one correction
     attempt. Only reached when execute_node fails and a retry is still available.
     """
-    llm = get_llm(temperature=0, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_CODE)
+    llm = get_llm(temperature=0, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_CODE, api_key=state.get("gemini_api_key"))
 
     schema = build_schema_summary(state["row_count"], state["columns_with_dtypes"])
     prompt = f"""The following pandas code failed when run against `df`.
@@ -135,7 +136,7 @@ def interpret_node(state: AgentState) -> AgentState:
         )
         return state
 
-    llm = get_llm(temperature=0.3, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_TEXT)
+    llm = get_llm(temperature=0.3, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_TEXT, api_key=state.get("gemini_api_key"))
     # Cap how much raw stdout gets embedded in the prompt. A question like
     # "tell me about this dataset" can produce a df.info()+describe()+
     # value_counts() dump running to thousands of characters -- feeding all
@@ -168,7 +169,7 @@ def decide_chart_node(state: AgentState) -> AgentState:
     salary" doesn't need a bar chart of one number. Avoids spending the
     extra generate_chart LLM call + subprocess run when it wouldn't help.
     """
-    llm = get_llm(temperature=0, max_output_tokens=10)
+    llm = get_llm(temperature=0, max_output_tokens=10, api_key=state.get("gemini_api_key"))
     prompt = f"""Question: {state['question']}
 Answer given: {state['final_answer']}
 
@@ -185,7 +186,7 @@ Reply with exactly one word: YES or NO.
 
 
 def generate_chart_node(state: AgentState) -> AgentState:
-    llm = get_llm(temperature=0, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_CODE)
+    llm = get_llm(temperature=0, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_CODE, api_key=state.get("gemini_api_key"))
     schema = build_schema_summary(state["row_count"], state["columns_with_dtypes"])
     prompt = f"""Question: {state['question']}
 
@@ -222,7 +223,7 @@ def _route_after_interpret(state: AgentState) -> str:
 
 
 def _route_after_decide(state: AgentState) -> str:
-    return "generate_chart" if state.get("include_chart") else "skip"
+    return "generate_chart" if state.get("wants_chart") else "skip"
 
 
 def _route_after_execute(state: AgentState) -> str:

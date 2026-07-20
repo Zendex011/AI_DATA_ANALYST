@@ -49,6 +49,19 @@ if JWT_SECRET_KEY == "dev-only-insecure-secret-change-me":
         "secret in .env before deploying this anywhere reachable by others."
     )
 
+# Encrypts each user's own Gemini API key at rest (users.gemini_api_key).
+# Without this, a Postgres dump or leaked DB credential hands over every
+# user's API key in plaintext. Generate a real one with:
+#   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY", "E9j8-cKDYqT6JFrxTwra2x95aVQRwWwkGHs6yLEIkfc=")
+
+if ENCRYPTION_KEY == "E9j8-cKDYqT6JFrxTwra2x95aVQRwWwkGHs6yLEIkfc=":
+    print(
+        "WARNING: ENCRYPTION_KEY is using the insecure default. Set a real "
+        "one in .env before storing any real user API keys -- anyone with "
+        "this source can decrypt them otherwise."
+    )
+
 # --- Celery (async jobs) ---
 # Reuses the same Redis instance as the Phase 4 cache but a different DB
 # index (1 instead of 0), so task/result keys never collide with cache keys.

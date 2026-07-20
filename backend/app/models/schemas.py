@@ -13,6 +13,14 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class ApiKeyUpdateRequest(BaseModel):
+    gemini_api_key: str
+
+
+class ApiKeyStatusResponse(BaseModel):
+    has_custom_key: bool
+
+
 class AskAsyncResponse(BaseModel):
     job_id: str
     status: str = "pending"
@@ -62,6 +70,16 @@ class FileListItem(BaseModel):
         from_attributes = True
 
 
+class DatabaseListItem(BaseModel):
+    db_id: str
+    label: str
+    dialect: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class HistoryItem(BaseModel):
     source_type: str
     question: str
@@ -87,17 +105,6 @@ class ConnectDBResponse(BaseModel):
     label: str
     dialect: str
     schema_summary: str
-
-
-class DatabaseListItem(BaseModel):
-    db_id: str
-    label: str
-    dialect: str
-    schema_summary: str
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class AskDBRequest(BaseModel):

@@ -5,6 +5,7 @@ import ChatPanel from "./ChatPanel.jsx";
 import HistoryPanel from "./HistoryPanel.jsx";
 import UploadModal from "./UploadModal.jsx";
 import ConnectDbModal from "./ConnectDbModal.jsx";
+import SettingsModal from "./SettingsModal.jsx";
 import { api } from "../api/client.js";
 
 export default function Dashboard() {
@@ -15,6 +16,7 @@ export default function Dashboard() {
   const [view, setView] = useState("chat"); // "chat" | "history"
   const [showUpload, setShowUpload] = useState(false);
   const [showConnect, setShowConnect] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const refreshSources = useCallback(async () => {
     setLoadingSources(true);
@@ -69,6 +71,7 @@ export default function Dashboard() {
         }}
         onUploadClick={() => setShowUpload(true)}
         onConnectClick={() => setShowConnect(true)}
+        onSettingsClick={() => setShowSettings(true)}
         loading={loadingSources}
       />
 
@@ -110,6 +113,7 @@ export default function Dashboard() {
       {showConnect && (
         <ConnectDbModal onClose={() => setShowConnect(false)} onConnected={handleConnected} />
       )}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
 
       <style>{`
         .dashboard {

@@ -60,6 +60,14 @@ export const api = {
     });
   },
 
+  // --- User's own Gemini API key ---
+  // The key itself is never returned by any of these -- only whether one
+  // is currently set (has_custom_key). See PUT/GET/DELETE /auth/api-key.
+  getApiKeyStatus: () => request("/auth/api-key"),
+  setApiKey: (geminiApiKey) =>
+    request("/auth/api-key", { method: "PUT", body: { gemini_api_key: geminiApiKey } }),
+  deleteApiKey: () => request("/auth/api-key", { method: "DELETE" }),
+
   // --- Files ---
   listFiles: () => request("/files"),
   uploadFile: (file) => {

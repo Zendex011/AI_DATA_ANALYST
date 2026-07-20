@@ -24,7 +24,7 @@ from app.models.schemas import (
     DatabaseListItem,
 )
 from app.core.db_schema import reflect_schema
-from app.services.ask_service import run_csv_ask, run_db_ask
+from app.services.ask_service import run_csv_ask, run_db_ask, get_user_gemini_key
 from app.workers.tasks import run_csv_ask_task, run_db_ask_task
 from app.auth.dependencies import get_current_user
 from sqlalchemy.exc import SQLAlchemyError
@@ -186,7 +186,9 @@ async def ask_question(
 ):
     _get_owned_file(db, req.file_id, current_user)
     try:
-        response_data = run_csv_ask(db, req.file_id, req.question, req.include_chart)
+        response_data = run_csv_ask(
+            db, req.file_id, req.question, req.include_chart, get_user_gemini_key(current_user)
+        )
     except ValueError as e:
         raise HTTPException(404, str(e))
     return AskResponse(**response_data)
@@ -205,7 +207,9 @@ def ask_question_async(
     """
     _get_owned_file(db, req.file_id, current_user)
 
-    task = run_csv_ask_task.delay(req.file_id, req.question, req.include_chart)
+    task = run_csv_ask_task.delay(
+        req.file_id, req.question, req.include_chart, get_user_gemini_key(current_user)
+    )
 
     job = AsyncJob(
         id=task.id,
@@ -249,9 +253,7 @@ def get_job_status(
 
 
 @router.get("/databases", response_model=list[DatabaseListItem])
-def list_databases(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
+def list_databases(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     connections = (
         db.query(DatabaseConnection)
         .filter(DatabaseConnection.user_id == current_user.id)
@@ -260,11 +262,7 @@ def list_databases(
     )
     return [
         DatabaseListItem(
-            db_id=c.id,
-            label=c.label,
-            dialect=c.dialect,
-            schema_summary=c.schema_summary,
-            created_at=c.created_at,
+            db_id=c.id, label=c.label, dialect=c.dialect, created_at=c.created_at
         )
         for c in connections
     ]
@@ -321,7 +319,9 @@ def ask_database(
 ):
     _get_owned_db(db, req.db_id, current_user)
     try:
-        response_data = run_db_ask(db, req.db_id, req.question, req.include_chart)
+        response_data = run_db_ask(
+            db, req.db_id, req.question, req.include_chart, get_user_gemini_key(current_user)
+        )
     except ValueError as e:
         raise HTTPException(404, str(e))
     return AskDBResponse(**response_data)
@@ -333,7 +333,9 @@ def ask_database_async(
 ):
     _get_owned_db(db, req.db_id, current_user)
 
-    task = run_db_ask_task.delay(req.db_id, req.question, req.include_chart)
+    task = run_db_ask_task.delay(
+        req.db_id, req.question, req.include_chart, get_user_gemini_key(current_user)
+    )
 
     job = AsyncJob(
         id=task.id,
@@ -361,3 +363,36 @@ def get_db_history(
         .all()
     )
     return [HistoryItem.model_validate(h) for h in history]
+
+
+@router.get("/_debug/dbinfo")
+def _debug_dbinfo(db: Session = Depends(get_db)):
+    """Debug-only endpoint: returns what SQLAlchemy/connection sees.
+
+    Remove this in production. Useful to verify columns, search_path,
+    and current database/schema from the running app process.
+    """
+    from sqlalchemy import inspect, text
+
+    engine = db.get_bind()
+    insp = inspect(engine)
+    try:
+        uploaded_cols = [c["name"] for c in insp.get_columns("uploaded_files")]
+    except Exception:
+        uploaded_cols = None
+    try:
+        dbconn_cols = [c["name"] for c in insp.get_columns("database_connections")]
+    except Exception:
+        dbconn_cols = None
+
+    meta = None
+    try:
+        with engine.connect() as conn:
+            rows = conn.execute(
+                text("select current_database(), current_schema(), current_schemas(true), current_setting('search_path')")
+            ).all()
+            meta = [list(r) for r in rows]
+    except Exception as e:
+        meta = str(e)
+
+    return {"uploaded_files": uploaded_cols, "database_connections": dbconn_cols, "meta": meta}

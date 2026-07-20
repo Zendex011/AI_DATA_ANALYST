@@ -15,10 +15,11 @@ routes.py, a failed Celery task result in tasks.py).
 
 import json
 from sqlalchemy.orm import Session
-from app.db.models import UploadedFile, DatabaseConnection, QueryHistory
+from app.db.models import UploadedFile, DatabaseConnection, QueryHistory, User
 from app.agents.orchestrator import build_graph
 from app.agents.sql_orchestrator import build_sql_graph
 from app.core import cache
+from app.core.crypto import decrypt_secret
 
 _graph = None
 _sql_graph = None
@@ -38,7 +39,25 @@ def _get_sql_graph():
     return _sql_graph
 
 
-def run_csv_ask(db: Session, file_id: str, question: str, include_chart: bool) -> dict:
+def get_user_gemini_key(user: User) -> str | None:
+    """
+    Returns the user's own decrypted Gemini key, or None if they haven't
+    set one (get_llm() falls back to the app's shared GEMINI_API_KEY when
+    given None). Also falls back to None if decryption fails -- e.g.
+    ENCRYPTION_KEY changed since the key was saved -- rather than crashing
+    the request; the user just silently uses the shared key that request.
+    """
+    if not user or not user.gemini_api_key:
+        return None
+    try:
+        return decrypt_secret(user.gemini_api_key)
+    except ValueError:
+        return None
+
+
+def run_csv_ask(
+    db: Session, file_id: str, question: str, include_chart: bool, gemini_api_key: str | None = None
+) -> dict:
     db_file = db.query(UploadedFile).filter(UploadedFile.id == file_id).first()
     if not db_file:
         raise ValueError("File not found. Upload it first via /upload")
@@ -64,6 +83,7 @@ def run_csv_ask(db: Session, file_id: str, question: str, include_chart: bool) -
         "chart_base64": None,
         "chart_error": None,
         "wants_chart": False,
+        "gemini_api_key": gemini_api_key,
     }
     final_state = _get_graph().invoke(state)
 
@@ -100,7 +120,9 @@ def run_csv_ask(db: Session, file_id: str, question: str, include_chart: bool) -
     return {**response_data, "cached": False}
 
 
-def run_db_ask(db: Session, db_id: str, question: str, include_chart: bool) -> dict:
+def run_db_ask(
+    db: Session, db_id: str, question: str, include_chart: bool, gemini_api_key: str | None = None
+) -> dict:
     db_conn = db.query(DatabaseConnection).filter(DatabaseConnection.id == db_id).first()
     if not db_conn:
         raise ValueError("Database connection not found. Connect it first via /connect-db")
@@ -128,6 +150,7 @@ def run_db_ask(db: Session, db_id: str, question: str, include_chart: bool) -> d
         "chart_base64": None,
         "chart_error": None,
         "wants_chart": False,
+        "gemini_api_key": gemini_api_key,
     }
     final_state = _get_sql_graph().invoke(state)
 

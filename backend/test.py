@@ -1,12 +1,5 @@
-import os
-from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI
+from sqlalchemy import text
+from app.db.database import engine
 
-load_dotenv()
-
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=os.getenv("GOOGLE_API_KEY")
-)
-
-print(llm.invoke("Hello"))
+with engine.connect() as conn:
+    print(conn.execute(text("SELECT current_database()")).scalar())

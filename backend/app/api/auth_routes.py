@@ -4,7 +4,14 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.models import User
 from app.auth.security import hash_password, verify_password, create_access_token
-from app.models.schemas import SignupRequest, TokenResponse
+from app.auth.dependencies import get_current_user
+from app.core.crypto import encrypt_secret
+from app.models.schemas import (
+    SignupRequest,
+    TokenResponse,
+    ApiKeyUpdateRequest,
+    ApiKeyStatusResponse,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -38,3 +45,39 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
     token = create_access_token(user.id)
     return TokenResponse(access_token=token)
+
+
+@router.put("/api-key", response_model=ApiKeyStatusResponse)
+def set_api_key(
+    req: ApiKeyUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Lets a user supply their own Gemini API key so their usage bills to
+    their own Google account instead of the app owner's. Stored encrypted
+    (see app/core/crypto.py) -- never returned back in plaintext by any
+    endpoint, including this one.
+    """
+    if not req.gemini_api_key.strip():
+        raise HTTPException(400, "API key cannot be empty")
+
+    current_user.gemini_api_key = encrypt_secret(req.gemini_api_key.strip())
+    db.commit()
+    return ApiKeyStatusResponse(has_custom_key=True)
+
+
+@router.get("/api-key", response_model=ApiKeyStatusResponse)
+def get_api_key_status(current_user: User = Depends(get_current_user)):
+    """Never returns the key itself -- only whether one is set."""
+    return ApiKeyStatusResponse(has_custom_key=current_user.gemini_api_key is not None)
+
+
+@router.delete("/api-key", response_model=ApiKeyStatusResponse)
+def delete_api_key(
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+):
+    """Removes the user's own key -- they fall back to the app's shared key."""
+    current_user.gemini_api_key = None
+    db.commit()
+    return ApiKeyStatusResponse(has_custom_key=False)

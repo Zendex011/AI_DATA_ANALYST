@@ -15,6 +15,10 @@ class User(Base):
     id = Column(String, primary_key=True, default=gen_uuid)
     email = Column(String, nullable=False, unique=True, index=True)
     hashed_password = Column(String, nullable=False)
+    # Encrypted (see app/core/crypto.py), never stored in plaintext. NULL
+    # means the user hasn't set their own key -- falls back to the app's
+    # global GEMINI_API_KEY.
+    gemini_api_key = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     files = relationship("UploadedFile", back_populates="owner", cascade="all, delete-orphan")

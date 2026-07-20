@@ -7,6 +7,7 @@ export default function Sidebar({
   onSelect,
   onUploadClick,
   onConnectClick,
+  onSettingsClick,
   loading,
 }) {
   const { email, logout } = useAuth();
@@ -77,9 +78,18 @@ export default function Sidebar({
 
       <div className="sidebar-footer">
         <span className="sidebar-user mono">{email}</span>
-        <button className="btn btn-ghost sidebar-logout" onClick={logout}>
-          Log out
-        </button>
+        <div className="sidebar-footer-actions">
+          <button
+            className="btn btn-ghost sidebar-settings"
+            onClick={onSettingsClick}
+            title="Manage your Gemini API key"
+          >
+            Settings
+          </button>
+          <button className="btn btn-ghost sidebar-logout" onClick={logout}>
+            Log out
+          </button>
+        </div>
       </div>
 
       <style>{`
@@ -181,6 +191,15 @@ export default function Sidebar({
           align-items: center;
           justify-content: space-between;
           gap: 8px;
+        }
+        .sidebar-footer-actions {
+          display: flex;
+          gap: 4px;
+          flex-shrink: 0;
+        }
+        .sidebar-settings {
+          font-size: 12px;
+          padding: 4px 8px;
         }
         .sidebar-user {
           font-size: 11px;

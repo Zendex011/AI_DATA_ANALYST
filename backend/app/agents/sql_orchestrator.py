@@ -47,10 +47,11 @@ class SQLAgentState(TypedDict):
     chart_base64: Optional[str]
     chart_error: Optional[str]
     wants_chart: bool
+    gemini_api_key: Optional[str]
 
 
 def plan_sql_node(state: SQLAgentState) -> SQLAgentState:
-    llm = get_llm(temperature=0, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_CODE)
+    llm = get_llm(temperature=0, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_CODE, api_key=state.get("gemini_api_key"))
     prompt = f"""You are a data analyst. A user connected a database and asked:
 "{state['question']}"
 
@@ -88,7 +89,7 @@ def execute_sql_node(state: SQLAgentState) -> SQLAgentState:
 
 
 def fix_sql_node(state: SQLAgentState) -> SQLAgentState:
-    llm = get_llm(temperature=0, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_CODE)
+    llm = get_llm(temperature=0, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_CODE, api_key=state.get("gemini_api_key"))
     prompt = f"""The following SQL query failed.
 
 Original question: "{state['question']}"
@@ -120,7 +121,7 @@ def interpret_sql_node(state: SQLAgentState) -> SQLAgentState:
         )
         return state
 
-    llm = get_llm(temperature=0.3, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_TEXT)
+    llm = get_llm(temperature=0.3, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_TEXT, api_key=state.get("gemini_api_key"))
     preview = _rows_preview(state["columns"], state["rows"])
     truncated_note = " (truncated -- more rows exist)" if state["truncated"] else ""
     prompt = f"""Question asked: {state['question']}
@@ -141,7 +142,7 @@ that it's an inference, not something read from the data.
 
 
 def decide_chart_node(state: SQLAgentState) -> SQLAgentState:
-    llm = get_llm(temperature=0, max_output_tokens=10)
+    llm = get_llm(temperature=0, max_output_tokens=10, api_key=state.get("gemini_api_key"))
     prompt = f"""Question: {state['question']}
 Answer given: {state['final_answer']}
 
@@ -163,7 +164,7 @@ def generate_chart_node(state: SQLAgentState) -> SQLAgentState:
     and the same chart_generator.run_chart_code() used by the CSV path is
     reused as-is, rather than duplicating chart-execution logic.
     """
-    llm = get_llm(temperature=0, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_CODE)
+    llm = get_llm(temperature=0, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_CODE, api_key=state.get("gemini_api_key"))
     prompt = f"""Question: {state['question']}
 Result columns: {state['columns']}
 
@@ -205,7 +206,7 @@ def _route_after_interpret(state: SQLAgentState) -> str:
 
 
 def _route_after_decide(state: SQLAgentState) -> str:
-    return "generate_chart" if state.get("include_chart") else "skip"
+    return "generate_chart" if state.get("wants_chart") else "skip"
 
 
 def _rows_preview(columns: list, rows: list, limit: int = 20) -> str:
