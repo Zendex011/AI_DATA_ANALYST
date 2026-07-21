@@ -98,9 +98,14 @@ async def upload_csv(
     path = os.path.abspath(os.path.join(UPLOAD_DIR, f"{file_id}.csv"))
     with open(path, "wb") as f:
         f.write(content)
+    print("=" * 50)
+    print("Saved to:", path)
+    print("Exists immediately:", os.path.exists(path))
+    print("Directory:", os.listdir(os.path.dirname(path)))
+    print("=" * 50)    
 
     dtypes = {col: str(dtype) for col, dtype in df.dtypes.items()}
-
+    print("DB path =", path)
     db_file = UploadedFile(
         id=file_id,
         user_id=current_user.id,
