@@ -78,7 +78,7 @@ Write pandas code that answers this question.
 """
     response = llm.invoke(prompt)
 
-    content = response.content
+    content = _get_text_content(response)
 
 # Newer LangChain/Gemini versions return a list of content blocks
     if isinstance(content, list):
@@ -136,7 +136,7 @@ Fix the code so it runs correctly and answers the original question.
     response = llm.invoke(prompt)
     print(type(response.content))
     print(repr(response.content))
-    state["generated_code"] = _strip_code_fences(response.content)
+    state["generated_code"] = _strip_code_fences(_get_text_content(response))
     state["retry_count"] += 1
     return state
 
@@ -196,7 +196,8 @@ categories, a trend over time, or a distribution generally DOES.
 Reply with exactly one word: YES or NO.
 """
     response = llm.invoke(prompt)
-    state["wants_chart"] = response.content.strip().upper().startswith("Y")
+    answer = _get_text_content(response)
+    state["wants_chart"] = answer.strip().upper().startswith("Y")
     return state
 
 
@@ -218,7 +219,7 @@ Rules:
 - Return ONLY the code. No explanation, no markdown fences.
 """
     response = llm.invoke(prompt)
-    chart_code = _strip_code_fences(response.content)
+    chart_code = _strip_code_fences(_get_text_content(response))
 
     try:
         state["chart_base64"] = run_chart_code_to_file(chart_code, state["csv_path"], state["chart_path"])
@@ -292,7 +293,7 @@ def _finalize_answer(response) -> str:
     a genuinely truncated "The average is 5" (missing a digit) unless we
     flag it.
     """
-    text = response.content
+    text = _get_text_content(response)
     finish_reason = None
     try:
         finish_reason = response.response_metadata.get("finish_reason")
