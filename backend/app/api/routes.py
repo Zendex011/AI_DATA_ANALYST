@@ -208,7 +208,7 @@ async def ask_question(
         response_data = run_csv_ask(
             db, req.file_id, req.question, req.include_chart, get_user_gemini_key(current_user)
         )
-        print("UPLOAD file_id =", file_id)
+        print("ASK file_id =", req.file_id)
     except ValueError as e:
         raise HTTPException(404, str(e))
     return AskResponse(**response_data)
