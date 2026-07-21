@@ -104,7 +104,16 @@ def run_csv_ask(
         final_state["chart_url"] = f"/charts/{os.path.basename(final_state['chart_path'])}"
     else:
         final_state["chart_url"] = None
+    print("\n========== FINAL STATE TYPES ==========")
+    for k, v in final_state.items():
+        print(f"{k}: {type(v)}")
+    print("=======================================\n")
 
+    print("final_answer =", repr(final_state["final_answer"]))
+    print("generated_code =", type(final_state["generated_code"]))
+    print("error_type =", type(final_state["error_type"]))
+    print("error_message =", type(final_state["error_message"]))
+    
     history_entry = QueryHistory(
         source_type="csv",
         file_id=file_id,
