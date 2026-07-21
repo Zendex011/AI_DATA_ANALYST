@@ -15,10 +15,14 @@ function AssistantMessage({ response }) {
 
         <p className="msg-answer">{response.answer}</p>
 
-        {response.chart_generated && response.chart_base64 && (
+        {(response.chart_url || response.chart_base64) && (
           <img
             className="msg-chart"
-            src={`data:image/png;base64,${response.chart_base64}`}
+            src={
+              response.chart_url
+                ? response.chart_url
+                : `data:image/png;base64,${response.chart_base64}`
+            }
             alt="Generated chart"
           />
         )}

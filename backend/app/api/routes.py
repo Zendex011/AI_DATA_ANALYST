@@ -5,8 +5,9 @@ import os
 import uuid
 import pandas as pd
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-from app.config import UPLOAD_DIR
+from app.config import CHART_DIR, UPLOAD_DIR
 from app.db.database import get_db
 from app.db.models import UploadedFile, QueryHistory, DatabaseConnection, User, AsyncJob
 from app.models.schemas import (
@@ -53,6 +54,7 @@ def _find_duplicate_headers(content: bytes) -> list[str]:
 
 router = APIRouter()
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(CHART_DIR, exist_ok=True)
 
 
 @router.post("/upload", response_model=UploadResponse)
@@ -92,7 +94,7 @@ async def upload_csv(
         )
 
     file_id = str(uuid.uuid4())
-    path = os.path.join(UPLOAD_DIR, f"{file_id}.csv")
+    path = os.path.abspath(os.path.join(UPLOAD_DIR, f"{file_id}.csv"))
     with open(path, "wb") as f:
         f.write(content)
 
@@ -163,6 +165,16 @@ def _get_owned_db(db: Session, db_id: str, current_user: User) -> DatabaseConnec
     if not db_conn:
         raise HTTPException(404, "Database connection not found")
     return db_conn
+
+
+@router.get("/charts/{filename}")
+def get_chart(filename: str, current_user: User = Depends(get_current_user)):
+    if filename.startswith(".") or ".." in filename or filename.startswith("/"):
+        raise HTTPException(400, "Invalid chart filename")
+    chart_path = os.path.join(CHART_DIR, filename)
+    if not os.path.isfile(chart_path):
+        raise HTTPException(404, "Chart not found")
+    return FileResponse(chart_path, media_type="image/png")
 
 
 @router.get("/history/{file_id}", response_model=list[HistoryItem])

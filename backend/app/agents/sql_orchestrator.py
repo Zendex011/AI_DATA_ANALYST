@@ -5,7 +5,7 @@ from typing import TypedDict, Optional
 from langgraph.graph import StateGraph, END
 from app.core.llm import get_llm
 from app.core.sql_executor import run_sql_query, SQLExecutionError
-from app.core.chart_generator import run_chart_code, ChartExecutionError
+from app.core.chart_generator import run_chart_code_to_file, ChartExecutionError
 from app.config import GEMINI_MAX_OUTPUT_TOKENS_CODE, GEMINI_MAX_OUTPUT_TOKENS_TEXT
 
 MAX_RETRIES = 1
@@ -31,6 +31,7 @@ Rules for the SQL you write:
 class SQLAgentState(TypedDict):
     question: str
     connection_string: str
+    chart_path: str
     schema_summary: str
     generated_sql: str
     columns: list
@@ -171,8 +172,8 @@ Result columns: {state['columns']}
 Write matplotlib code that creates ONE chart to help visualize this result.
 Rules:
 - `df` is already loaded as a pandas DataFrame (from the query result), and
-  `output_path` is already defined. End with plt.savefig(output_path). Do
-  NOT call plt.show().
+  both `output_path` and `chart_path` are already defined. End with
+  plt.savefig(output_path) or plt.savefig(chart_path). Do NOT call plt.show().
 - Use the EXACT column names listed above.
 - Keep it to one chart, directly relevant to the question.
 - Return ONLY the code. No explanation, no markdown fences.
@@ -186,7 +187,7 @@ Rules:
     tmp_df.to_csv(tmp_csv_path, index=False)
 
     try:
-        state["chart_base64"] = run_chart_code(chart_code, tmp_csv_path)
+        state["chart_base64"] = run_chart_code_to_file(chart_code, tmp_csv_path, state["chart_path"])
         state["chart_generated"] = True
         state["chart_error"] = None
     except ChartExecutionError as e:

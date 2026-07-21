@@ -73,6 +73,7 @@ import sys
 
 df = pd.read_csv("/sandbox/data.csv")
 output_path = "/sandbox/output/{output_name}"
+chart_path = output_path
 
 try:
 {_indent(code)}
@@ -131,6 +132,7 @@ import sys
 
 df = pd.read_csv(r"{csv_path}")
 output_path = r"{output_path}"
+chart_path = output_path
 
 try:
 {_indent(code)}
@@ -172,8 +174,6 @@ except Exception as e:
         raise ChartExecutionError("TimeoutError", f"Chart generation exceeded {MAX_CODE_EXEC_SECONDS}s")
     finally:
         os.remove(script_path)
-        if os.path.exists(output_path):
-            os.remove(output_path)
 
 
 # ---------------------------------------------------------------------------

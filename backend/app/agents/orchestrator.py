@@ -3,7 +3,7 @@ from urllib import response
 from langgraph.graph import StateGraph, END
 from app.core.llm import get_llm
 from app.core.schema_utils import build_schema_summary
-from app.core.chart_generator import run_chart_code, ChartExecutionError
+from app.core.chart_generator import run_chart_code_to_file, ChartExecutionError
 from app.agents.tools import execute_pandas_code
 from app.config import GEMINI_MAX_OUTPUT_TOKENS_CODE, GEMINI_MAX_OUTPUT_TOKENS_TEXT
 
@@ -45,6 +45,7 @@ Rules for the code you write:
 class AgentState(TypedDict):
     question: str
     csv_path: str
+    chart_path: str
     row_count: int
     columns_with_dtypes: dict
     generated_code: str
@@ -208,8 +209,9 @@ def generate_chart_node(state: AgentState) -> AgentState:
 
 Write matplotlib code that creates ONE chart to help visualize the answer.
 Rules:
-- `df` is already loaded as a pandas DataFrame, and `output_path` is already
-  defined. End with plt.savefig(output_path). Do NOT call plt.show().
+- `df` is already loaded as a pandas DataFrame, and both `output_path` and
+  `chart_path` are already defined. End with plt.savefig(output_path) or
+  plt.savefig(chart_path). Do NOT call plt.show().
 - Use the EXACT column names from the schema above.
 - Keep it to one chart, directly relevant to the question -- not a grid of
   subplots unless the question clearly needs a multi-part comparison.
@@ -219,7 +221,7 @@ Rules:
     chart_code = _strip_code_fences(response.content)
 
     try:
-        state["chart_base64"] = run_chart_code(chart_code, state["csv_path"])
+        state["chart_base64"] = run_chart_code_to_file(chart_code, state["csv_path"], state["chart_path"])
         state["chart_generated"] = True
         state["chart_error"] = None
     except ChartExecutionError as e:

@@ -23,7 +23,7 @@ import os
 import subprocess
 import sys
 import tempfile
-from app.config import MAX_CODE_EXEC_SECONDS, SANDBOX_MODE
+from app.config import MAX_CODE_EXEC_SECONDS, SANDBOX_MODE, UPLOAD_DIR
 
 _ERROR_MARKER = "__EXEC_ERROR_JSON__"
 
@@ -41,6 +41,15 @@ def run_python_code(code: str, csv_path: str) -> dict:
     Raises: CodeExecutionError on any failure (bad code, timeout, crash,
     or -- in docker mode -- Docker itself being unavailable).
     """
+    print("DEBUG run_python_code csv_path:", csv_path)
+    print("DEBUG run_python_code abspath:", os.path.abspath(csv_path))
+    print("DEBUG run_python_code cwd:", os.getcwd())
+    print("DEBUG run_python_code exists:", os.path.exists(csv_path))
+    print("DEBUG UPLOAD_DIR:", UPLOAD_DIR)
+    try:
+        print("DEBUG UPLOAD_DIR contents:", os.listdir(UPLOAD_DIR))
+    except Exception as e:
+        print("DEBUG UPLOAD_DIR list error:", e)
     if SANDBOX_MODE == "docker":
         return _run_docker(code, csv_path)
     return _run_subprocess(code, csv_path)

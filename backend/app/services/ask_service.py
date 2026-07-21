@@ -14,7 +14,10 @@ routes.py, a failed Celery task result in tasks.py).
 """
 
 import json
+import os
+import uuid
 from sqlalchemy.orm import Session
+from app.config import CHART_DIR, UPLOAD_DIR
 from app.db.models import UploadedFile, DatabaseConnection, QueryHistory, User
 from app.agents.orchestrator import build_graph
 from app.agents.sql_orchestrator import build_sql_graph
@@ -66,9 +69,13 @@ def run_csv_ask(
     if cached:
         return {**cached, "cached": True}
 
+    os.makedirs(CHART_DIR, exist_ok=True)
+    chart_file = os.path.join(CHART_DIR, f"{uuid.uuid4()}.png")
+
     state = {
         "question": question,
-        "csv_path": db_file.path,
+        "csv_path": os.path.abspath(db_file.path),
+        "chart_path": os.path.abspath(chart_file),
         "row_count": db_file.rows,
         "columns_with_dtypes": json.loads(db_file.dtypes),
         "generated_code": "",
@@ -85,7 +92,18 @@ def run_csv_ask(
         "wants_chart": False,
         "gemini_api_key": gemini_api_key,
     }
+    print("DEBUG run_csv_ask csv_path:", state["csv_path"])
+    print("DEBUG run_csv_ask csv_path abspath:", os.path.abspath(state["csv_path"]))
+    print("DEBUG cwd:", os.getcwd())
+    print("DEBUG exists:", os.path.exists(state["csv_path"]))
+    print("DEBUG UPLOAD_DIR:", UPLOAD_DIR)
+    print("DEBUG UPLOAD_DIR contents:", os.listdir(UPLOAD_DIR))
     final_state = _get_graph().invoke(state)
+
+    if final_state.get("chart_generated") and final_state.get("chart_path"):
+        final_state["chart_url"] = f"/charts/{os.path.basename(final_state['chart_path'])}"
+    else:
+        final_state["chart_url"] = None
 
     history_entry = QueryHistory(
         source_type="csv",
@@ -111,6 +129,7 @@ def run_csv_ask(
         "retries_used": final_state["retry_count"],
         "chart_generated": final_state["chart_generated"],
         "chart_base64": final_state["chart_base64"],
+        "chart_url": final_state.get("chart_url"),
         "chart_error": final_state["chart_error"],
     }
 
@@ -131,9 +150,13 @@ def run_db_ask(
     if cached:
         return {**cached, "cached": True}
 
+    os.makedirs(CHART_DIR, exist_ok=True)
+    chart_file = os.path.join(CHART_DIR, f"{uuid.uuid4()}.png")
+
     state = {
         "question": question,
         "connection_string": db_conn.connection_string,
+        "chart_path": os.path.abspath(chart_file),
         "schema_summary": db_conn.schema_summary,
         "generated_sql": "",
         "columns": [],
@@ -153,6 +176,11 @@ def run_db_ask(
         "gemini_api_key": gemini_api_key,
     }
     final_state = _get_sql_graph().invoke(state)
+
+    if final_state.get("chart_generated") and final_state.get("chart_path"):
+        final_state["chart_url"] = f"/charts/{os.path.basename(final_state['chart_path'])}"
+    else:
+        final_state["chart_url"] = None
 
     history_entry = QueryHistory(
         source_type="database",
@@ -181,6 +209,7 @@ def run_db_ask(
         "retries_used": final_state["retry_count"],
         "chart_generated": final_state["chart_generated"],
         "chart_base64": final_state["chart_base64"],
+        "chart_url": final_state.get("chart_url"),
         "chart_error": final_state["chart_error"],
     }
 

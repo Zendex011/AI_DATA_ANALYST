@@ -49,6 +49,7 @@ class AskResponse(BaseModel):
     cached: bool = False
     chart_generated: bool = False
     chart_base64: Optional[str] = None
+    chart_url: Optional[str] = None
     chart_error: Optional[str] = None
 
 
@@ -127,4 +128,5 @@ class AskDBResponse(BaseModel):
     cached: bool = False
     chart_generated: bool = False
     chart_base64: Optional[str] = None
+    chart_url: Optional[str] = None
     chart_error: Optional[str] = None

@@ -5,7 +5,8 @@ load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 MAX_CODE_EXEC_SECONDS = int(os.getenv("MAX_CODE_EXEC_SECONDS", "10"))
-UPLOAD_DIR = os.getenv("UPLOAD_DIR", "./uploads")
+UPLOAD_DIR = os.path.abspath(os.getenv("UPLOAD_DIR", "./uploads"))
+CHART_DIR = os.path.join(UPLOAD_DIR, "charts")
 
 # Hard ceiling on Gemini's response length. Without this, a rambling
 # explanation in the interpret step has no upper bound and quietly costs
