@@ -1,3 +1,5 @@
+from os import path
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -24,6 +26,8 @@ def signup(req: SignupRequest, db: Session = Depends(get_db)):
 
     user = User(email=req.email, hashed_password=hash_password(req.password))
     db.add(user)
+    print(path)
+    print(os.path.exists(path))
     db.commit()
     db.refresh(user)
 
@@ -63,6 +67,8 @@ def set_api_key(
         raise HTTPException(400, "API key cannot be empty")
 
     current_user.gemini_api_key = encrypt_secret(req.gemini_api_key.strip())
+    print(path)
+    print(os.path.exists(path))
     db.commit()
     return ApiKeyStatusResponse(has_custom_key=True)
 
@@ -79,5 +85,7 @@ def delete_api_key(
 ):
     """Removes the user's own key -- they fall back to the app's shared key."""
     current_user.gemini_api_key = None
+    print(path)
+    print(os.path.exists(path))
     db.commit()
     return ApiKeyStatusResponse(has_custom_key=False)
