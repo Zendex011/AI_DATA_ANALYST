@@ -62,6 +62,29 @@ class AgentState(TypedDict):
     wants_chart: bool
     gemini_api_key: Optional[str]
 
+def _get_text_content(response) -> str:
+    """
+    Extract text from LangChain Gemini responses.
+    Supports both old (string) and new (list of content blocks) formats.
+    """
+    content = response.content
+
+    if isinstance(content, str):
+        return content
+
+    if isinstance(content, list):
+        text = ""
+        for item in content:
+            if isinstance(item, dict):
+                if item.get("type") == "text":
+                    text += item.get("text", "")
+            else:
+                text += getattr(item, "text", str(item))
+        return text
+
+    return str(content)
+
+
 
 def plan_node(state: AgentState) -> AgentState:
     """LLM writes pandas code to answer the question."""
