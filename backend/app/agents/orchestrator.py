@@ -121,6 +121,8 @@ Fix the code so it runs correctly and answers the original question.
 {PANDAS_RULES}
 """
     response = llm.invoke(prompt)
+    print(type(response.content))
+    print(repr(response.content))
     state["generated_code"] = _strip_code_fences(response.content)
     state["retry_count"] += 1
     return state
@@ -235,16 +237,30 @@ def _route_after_execute(state: AgentState) -> str:
     return "interpret"
 
 
-def _strip_code_fences(text: str) -> str:
+def _strip_code_fences(text) -> str:
+    if isinstance(text, list):
+        parts = []
+        for item in text:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict):
+                parts.append(item.get("text", ""))
+            else:
+                # Handles LangChain content block objects
+                parts.append(getattr(item, "text", str(item)))
+        text = "".join(parts)
+
     text = text.strip()
+
     if text.startswith("```"):
         lines = text.split("\n")
-        if lines[-1].strip().startswith("```"):
-            lines = lines[1:-1]
-        else:
+        if lines and lines[0].startswith("```"):
             lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
         text = "\n".join(lines)
-    return text
+
+    return text.strip()
 
 
 def _truncate_for_prompt(text: str, max_chars: int = 3000) -> str:

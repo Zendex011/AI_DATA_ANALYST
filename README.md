@@ -1,508 +1,161 @@
-<div align="center">
+  # AI Data Analyst Agent
 
-# AI Data Analyst
+A FastAPI + LangGraph application that lets you:
+- upload a CSV and ask questions in plain English
+- connect to an external database and ask SQL-based questions
+- inspect uploaded files and prior query history
+- optionally generate charts from supported results
 
-### AI-Powered Conversational Data Analysis Platform
+The app uses Gemini to generate either pandas code or SQL, then executes it and returns a response with the generated code/query and any execution output.
 
-Transform CSV files and SQL databases into actionable insights using Natural Language.
+## Current capabilities
 
-Built with **FastAPI**, **LangGraph**, **Google Gemini**, **React**, and **SQLAlchemy**.
+- FastAPI back  end with Swagger docs at `/docs`
+- CSV workflow via `/upload` and `/ask`
+- Database workflow via `/connect-db` and `/ask-db`
+- File and history endpoints for both CSV and database sessions
+- Local SQLite persistence by default, with optional Postgres and Redis support via Docker Compose
+- Optional chart generation for supported responses
 
-![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green)
-![React](https://img.shields.io/badge/React-Frontend-61DAFB)
-![LangGraph](https://img.shields.io/badge/LangGraph-Agentic_AI-orange)
-![Gemini](https://img.shields.io/badge/Google-Gemini-red)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+## Run locally
 
-</div>
+From the repository root:
 
----
-
-# Overview
-
-AI Data Analyst is an intelligent analytics platform that enables users to interact with structured datasets using natural language instead of writing SQL queries or Python scripts.
-
-The system combines **Large Language Models**, **agentic workflows**, and **data processing pipelines** to automatically understand user intent, generate executable code, retrieve insights from structured data, and visualize the results.
-
-Whether the data is stored inside a CSV file or a relational database, the platform converts conversational requests into meaningful analytical outputs.
-
-Instead of asking:
-
-> "Write an SQL query to calculate monthly sales."
-
-Users simply ask:
-
-> "Show me monthly sales for the last year."
-
-The platform handles the complete reasoning and execution pipeline automatically.
-
----
-
-# Why AI Data Analyst?
-
-Traditional analytics tools require users to possess SQL knowledge, programming skills, or experience with BI dashboards.
-
-AI Data Analyst removes this barrier by enabling conversational interaction with data while maintaining complete transparency through generated SQL queries, Python code, execution results, and visualizations.
-
-The platform is designed to bridge the gap between business users and technical data analysis.
-
----
-
-# Features
-
-## Conversational Analytics
-
-- Query datasets using natural language
-- AI-generated responses with explanations
-- Conversational follow-up questions
-- Automatic reasoning using LangGraph
-
----
-
-## CSV Analysis
-
-- Upload CSV datasets
-- Automatic schema detection
-- Data profiling
-- Pandas-powered analysis
-- AI-generated Python code
-- Statistical summaries
-
----
-
-## SQL Database Analysis
-
-- Connect external databases
-- Automatic schema inspection
-- AI-generated SQL
-- SQL validation
-- Secure execution
-- Query history
-
----
-
-## Visualization
-
-Generate charts automatically whenever appropriate.
-
-Supported visualizations include:
-
-- Bar Charts
-- Line Charts
-- Scatter Plots
-- Histograms
-- Pie Charts
-- Box Plots
-
----
-
-## Agentic Workflow
-
-Instead of sending every request directly to an LLM, the system follows an intelligent multi-step workflow.
-
-- Intent Analysis
-- Route Selection
-- Code Generation
-- SQL Generation
-- Validation
-- Execution
-- Visualization
-- Response Formatting
-
----
-
-## History
-
-Maintain previous conversations and analytical sessions.
-
-- CSV history
-- Database history
-- Previous generated code
-- Previous SQL queries
-
----
-
-## Modular Backend
-
-Designed using independent components.
-
-- LLM Service
-- SQL Executor
-- Code Executor
-- Chart Generator
-- Schema Inspector
-- Validation Layer
-
----
-
-# System Architecture
-
-```text
-                        User
-                          │
-                          ▼
-                 Natural Language Query
-                          │
-                          ▼
-                  FastAPI REST API
-                          │
-                          ▼
-                 LangGraph Orchestrator
-                          │
-          ┌───────────────┴───────────────┐
-          │                               │
-          ▼                               ▼
-    CSV Workflow                    SQL Workflow
-          │                               │
-          ▼                               ▼
- Python Code Generator           SQL Query Generator
-          │                               │
-          ▼                               ▼
- Code Validation                SQL Validation
-          │                               │
-          ▼                               ▼
- Code Execution                 SQL Execution
-          │                               │
-          └───────────────┬───────────────┘
-                          ▼
-                 Chart Generation
-                          ▼
-               AI Generated Response
-                          ▼
-                       Frontend
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate      # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env          # then fill in your Gemini API key
+uvicorn app.main:app --reload
 ```
 
----
-
-# AI Workflow
-
-The application uses an agentic pipeline powered by LangGraph.
-
-### Step 1
-
-Receive user question.
-
-↓
-
-### Step 2
-
-Determine whether the request requires
-
-- CSV analysis
-- Database analysis
-
-↓
-
-### Step 3
-
-Generate executable Python code or SQL query.
-
-↓
-
-### Step 4
-
-Validate generated output.
-
-↓
-
-### Step 5
-
-Execute inside the appropriate execution engine.
-
-↓
-
-### Step 6
-
-Generate charts when applicable.
-
-↓
-
-### Step 7
-
-Format response for the user.
-
----
-
-# Core Components
-
-## LangGraph Orchestrator
-
-Responsible for coordinating the complete AI workflow.
-
-Responsibilities include:
-
-- Intent detection
-- Workflow routing
-- Context management
-- Agent coordination
-
----
-
-## LLM Service
-
-Responsible for
-
-- Prompt engineering
-- Response generation
-- SQL generation
-- Python generation
-
-Powered by Google Gemini.
-
----
-
-## Code Executor
-
-Executes AI-generated Python code in an isolated execution environment with timeout protection.
-
-Responsible for
-
-- Pandas operations
-- Statistical analysis
-- Data aggregation
-- Result extraction
-
----
-
-## SQL Executor
-
-Responsible for
-
-- Database connectivity
-- Query execution
-- Result formatting
-
-Supports SQLAlchemy-compatible databases.
-
----
-
-## Schema Inspector
-
-Automatically discovers
-
-- Tables
-- Columns
-- Relationships
-- Data types
-
-This information is provided to the LLM for accurate SQL generation.
-
----
-
-## Chart Generator
-
-Automatically creates visualizations whenever the analytical result benefits from graphical representation.
-
----
-
-# Supported Data Sources
-
-The platform currently supports
-
-- CSV Files
-- SQLite
-- PostgreSQL
-
-Architecture is extensible for
-
-- MySQL
-- Microsoft SQL Server
-- MariaDB
-- Oracle
-- Any SQLAlchemy-supported database
-
----
-
-# Security
-
-The application includes multiple safety mechanisms before execution.
-
-- SQL validation
-- Query sanitization
-- Execution timeout
-- Read-only analytical queries
-- Request validation
-- Schema-aware prompting
-- Controlled code execution
-
----
-
-# Technology Stack
-
-## Frontend
-
-- React
-- Vite
-- JavaScript
-- Tailwind CSS
-
----
-
-## Backend
-
-- FastAPI
-- LangGraph
-- Google Gemini
-- SQLAlchemy
-- Pandas
-- Pydantic
-
----
-
-## Databases
-
-- SQLite
-- PostgreSQL
-
----
-
-## AI
-
-- Google Gemini
-- LangGraph
-- Prompt Engineering
-- Agentic Workflows
-
----
-
-## Visualization
-
-- Matplotlib
-- Plotly
-
----
-
-# API Modules
-
-The backend exposes dedicated APIs for
-
-- Authentication
-- CSV Upload
-- CSV Analysis
-- Database Connection
-- SQL Analysis
-- History
-- File Management
-- Visualization
-- Health Monitoring
-
----
-
-# Example Workflow
-
-```text
-Upload CSV
-      │
-      ▼
-
-"What are the top 10 selling products?"
-
-      │
-
-      ▼
-
-AI generates Python
-
-      │
-
-      ▼
-
-Execute Pandas
-
-      │
-
-      ▼
-
-Generate Bar Chart
-
-      │
-
-      ▼
-
-Return Insights
+Then open:
+
+- http://localhost:8000/docs
+- http://localhost:8000/health
+
+### Windows activation
+
+```powershell
+cd backend
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+copy .env.example .env
 ```
 
----
+## Environment variables
 
-# Key Highlights
+The app reads these variables from the backend `.env` file:
 
-- Natural Language to SQL
-- Natural Language to Pandas
-- LangGraph Agent Architecture
-- Modular FastAPI Backend
-- Database Schema Discovery
-- AI Generated Visualizations
-- Query History
-- Multi-source Data Analysis
-- Extensible Architecture
-- Production-ready Design
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+MAX_CODE_EXEC_SECONDS=10
+UPLOAD_DIR=./uploads
+DATABASE_URL=sqlite:///./app_data.db     # optional override
+REDIS_URL=redis://localhost:6379/0      # optional override
+```
 
----
+If `GEMINI_API_KEY` is missing, the app starts with a warning and downstream LLM calls will fail until it is set.
 
-# Future Roadmap
+## Optional services with Docker Compose
 
-- User-managed API Keys
-- Multi-Agent Collaboration
-- PDF Report Generation
-- Scheduled Analytics
-- Dashboard Builder
-- Streaming Responses
-- Role-Based Access Control
-- Data Cleaning Assistant
-- RAG-powered Knowledge Base
-- Multi-file Analysis
-- Business KPI Monitoring
-- Cloud Deployment
+The repository includes a Docker Compose setup for Postgres and Redis:
 
----
+```bash
+docker compose up -d postgres redis
+```
 
-# Design Principles
+This is useful when you want to test the app with a more realistic persistence/cache setup instead of the default local SQLite and in-process cache behavior.
 
-This project is built around four core principles.
+## Example API calls
 
-- Transparency over black-box AI
-- Modular architecture
-- Production-oriented backend design
-- Extensible agent workflows
+### Upload a CSV
 
-Every AI-generated response can be traced back to the generated SQL query or Python code, allowing users to understand how conclusions were reached.
+```bash
+curl -X POST http://localhost:8000/upload \
+  -F "file=@your_data.csv"
+```
 
----
+### Ask a question about the uploaded CSV
 
-<img width="1917" height="1097" alt="Screenshot 2026-07-19 215937" src="https://github.com/user-attachments/assets/85ba1934-631a-4b94-94c9-02c4404bd436" />
-<img width="1917" height="1082" alt="Screenshot 2026-07-19 220333" src="https://github.com/user-attachments/assets/14963deb-e23c-44fa-aa5d-96df6738665d" />
-<img width="1917" height="1086" alt="Screenshot 2026-07-19 220204" src="https://github.com/user-attachments/assets/4da1dde0-91c1-4706-adb0-4eb8ba5be707" />
-<img width="1917" height="1092" alt="Screenshot 2026-07-19 220048" src="https://github.com/user-attachments/assets/64b43fa1-b085-4bad-9577-95adb0647610" />
-<img width="1917" height="1132" alt="Screenshot 2026-07-19 220019" src="https://github.com/user-attachments/assets/f981e3bc-bff4-4ee4-89ae-a80a4939d40b" />
+```bash
+curl -X POST http://localhost:8000/ask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "file_id": "PASTE_FILE_ID_HERE",
+    "question": "What is the average value in the price column?"
+  }'
+```
 
+### Connect a database
 
+```bash
+curl -X POST http://localhost:8000/connect-db \
+  -H "Content-Type: application/json" \
+  -d '{
+    "label": "Local Postgres",
+    "connection_string": "postgresql://user:password@localhost:5432/dbname"
+  }'
+```
 
-# Contributing
+### Ask a question about the connected database
 
-Contributions are welcome.
+```bash
+curl -X POST http://localhost:8000/ask-db \
+  -H "Content-Type: application/json" \
+  -d '{
+    "db_id": "PASTE_DB_ID_HERE",
+    "question": "Show the top 5 customers by total spend"
+  }'
+```
 
-Ideas for improvements include
+### List files and history
 
-- Additional database connectors
-- New visualization types
-- Advanced agent workflows
-- Better prompt optimization
-- Cloud integrations
-- Enterprise authentication
+```bash
+curl http://localhost:8000/files
+curl http://localhost:8000/history/PASTE_FILE_ID_HERE
+curl http://localhost:8000/history-db/PASTE_DB_ID_HERE
+```
 
----
+## Project structure
 
-# License
+```text
+ai-data-analyst/
+├── README.md
+├── docker-compose.yml
+├── backend/
+│   ├── requirements.txt
+│   ├── .env.example
+│   ├── uploads/
+│   └── app/
+│       ├── main.py
+│       ├── config.py
+│       ├── agents/
+│       │   ├── orchestrator.py
+│       │   └── sql_orchestrator.py
+│       ├── api/
+│       │   └── routes.py
+│       ├── core/
+│       │   ├── cache.py
+│       │   ├── chart_generator.py
+│       │   ├── code_executor.py
+│       │   ├── db_schema.py
+│       │   ├── llm.py
+│       │   ├── sql_executor.py
+│       │   ├── sql_validator.py
+│       │   └── schema_utils.py
+│       ├── db/
+│       │   ├── database.py
+│       │   └── models.py
+│       └── models/
+│           └── schemas.py
+```
 
-This project is licensed under the MIT License.
+## Notes and limitations
 
----
-
-<div align="center">
-
-### Built to simplify data analysis through AI.
-
-⭐ If you found this project useful, consider giving it a star.
-
-</div>
+- The code-execution path uses a subprocess with a timeout and is not a hardened sandbox. It should not be exposed to untrusted users.
+- The default database is SQLite for local development. Postgres is available as an optional upgrade path via Docker Compose.
+- Redis caching is optional; if it is unavailable, the app gracefully treats cache misses as normal.
+- No frontend is included in this repository; use the Swagger UI or curl for interaction.

@@ -10,6 +10,8 @@ app = FastAPI(title="AI Data Analyst Agent", version="0.6.0")
 # Allow configuring CORS origins via the CORS_ALLOWED_ORIGINS env var
 origins = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
 allow_origins = [o.strip() for o in origins.split(",") if o.strip()]
+print("CORS_ALLOWED_ORIGINS env:", origins)
+print("allow_origins:", allow_origins)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allow_origins,
