@@ -100,7 +100,7 @@ import pandas as pd
 import json
 import sys
 
-df = pd.read_csv(r"{csv_path}")
+df = pd.read_csv({json.dumps(csv_path)})
 
 try:
 {_indent(code)}

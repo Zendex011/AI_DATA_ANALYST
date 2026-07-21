@@ -33,31 +33,52 @@ def run_chart_code(code: str, csv_path: str) -> str:
     defined for it -- and must NOT call plt.show(). Returns the resulting
     PNG as a base64 string. Raises ChartExecutionError on any failure.
     """
+    img_fd, output_path = tempfile.mkstemp(suffix=".png")
+    os.close(img_fd)
+    try:
+        return run_chart_code_to_file(code, csv_path, output_path)
+    finally:
+        if os.path.exists(output_path):
+            os.remove(output_path)
+
+
+def run_chart_code_to_file(code: str, csv_path: str, output_path: str) -> str:
+    """
+    Runs matplotlib code and writes the result to the given output_path.
+    Returns the resulting PNG as a base64 string and leaves the file in place.
+    """
     if SANDBOX_MODE == "docker":
-        return _run_docker(code, csv_path)
-    return _run_subprocess(code, csv_path)
+        return _run_docker(code, csv_path, output_path)
+    return _run_subprocess(code, csv_path, output_path)
 
 
 # ---------------------------------------------------------------------------
 # Docker mode
 # ---------------------------------------------------------------------------
 
-def _run_docker(code: str, csv_path: str) -> str:
+def _run_docker(code: str, csv_path: str, output_path: str) -> str:
     from app.core.docker_sandbox import run_in_sandbox, SandboxExecutionError
 
+    output_name = os.path.basename(output_path)
+    host_output_dir = os.path.dirname(output_path)
     wrapper = f"""
 import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+plt.show = lambda *args, **kwargs: None
 import json
+import os
 import sys
 
 df = pd.read_csv("/sandbox/data.csv")
-output_path = "/sandbox/output/chart.png"
+output_path = "/sandbox/output/{output_name}"
 
 try:
 {_indent(code)}
+    if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
+        if plt.get_fignums():
+            plt.gcf().savefig(output_path)
 except Exception as e:
     print("{_ERROR_MARKER}" + json.dumps({{
         "error_type": type(e).__name__,
@@ -69,13 +90,11 @@ except Exception as e:
         f.write(wrapper)
         script_path = f.name
 
-    output_dir = tempfile.mkdtemp()
-
     try:
         volumes = {
             os.path.abspath(script_path): {"bind": "/sandbox/script.py", "mode": "ro"},
             os.path.abspath(csv_path): {"bind": "/sandbox/data.csv", "mode": "ro"},
-            os.path.abspath(output_dir): {"bind": "/sandbox/output", "mode": "rw"},
+            os.path.abspath(host_output_dir): {"bind": "/sandbox/output", "mode": "rw"},
         }
         try:
             run_in_sandbox(volumes)
@@ -84,7 +103,6 @@ except Exception as e:
                 raise _extract_structured_error(e.error_message)
             raise ChartExecutionError(e.error_type, e.error_message)
 
-        output_path = os.path.join(output_dir, "chart.png")
         if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
             raise ChartExecutionError(
                 "NoChartProduced",
@@ -94,23 +112,21 @@ except Exception as e:
             return base64.b64encode(img.read()).decode("utf-8")
     finally:
         os.remove(script_path)
-        shutil.rmtree(output_dir, ignore_errors=True)
 
 
 # ---------------------------------------------------------------------------
 # Subprocess mode (fallback -- see code_executor.py's docstring)
 # ---------------------------------------------------------------------------
 
-def _run_subprocess(code: str, csv_path: str) -> str:
-    img_fd, output_path = tempfile.mkstemp(suffix=".png")
-    os.close(img_fd)
-
+def _run_subprocess(code: str, csv_path: str, output_path: str) -> str:
     wrapper = f"""
 import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+plt.show = lambda *args, **kwargs: None
 import json
+import os
 import sys
 
 df = pd.read_csv(r"{csv_path}")
@@ -118,6 +134,9 @@ output_path = r"{output_path}"
 
 try:
 {_indent(code)}
+    if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
+        if plt.get_fignums():
+            plt.gcf().savefig(output_path)
 except Exception as e:
     print("{_ERROR_MARKER}" + json.dumps({{
         "error_type": type(e).__name__,

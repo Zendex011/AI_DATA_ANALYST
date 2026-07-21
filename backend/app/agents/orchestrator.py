@@ -1,4 +1,5 @@
 from typing import TypedDict, Optional
+from urllib import response
 from langgraph.graph import StateGraph, END
 from app.core.llm import get_llm
 from app.core.schema_utils import build_schema_summary
@@ -75,7 +76,18 @@ Write pandas code that answers this question.
 {PANDAS_RULES}
 """
     response = llm.invoke(prompt)
-    state["generated_code"] = _strip_code_fences(response.content)
+
+    content = response.content
+
+# Newer LangChain/Gemini versions return a list of content blocks
+    if isinstance(content, list):
+        content = "".join(
+            part.get("text", "") if isinstance(part, dict)
+            else getattr(part, "text", str(part))
+            for part in content
+        )
+
+    state["generated_code"] = _strip_code_fences(content)
     state["retry_count"] = 0
     return state
 
