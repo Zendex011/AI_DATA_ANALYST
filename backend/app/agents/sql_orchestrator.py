@@ -7,7 +7,7 @@ from app.core.llm import get_llm
 from app.core.sql_executor import run_sql_query, SQLExecutionError
 from app.core.chart_generator import run_chart_code_to_file, ChartExecutionError
 from app.config import GEMINI_MAX_OUTPUT_TOKENS_CODE, GEMINI_MAX_OUTPUT_TOKENS_TEXT
-from backend.app.agents.orchestrator import _strip_code_fences
+from app.agents.orchestrator import _strip_code_fences
 
 MAX_RETRIES = 1
 
