@@ -65,7 +65,8 @@ Write a SQL query that answers this question.
 {SQL_RULES}
 """
     response = llm.invoke(prompt)
-    content = response.content
+    decision = _strip_code_fences(response.content)
+    state["wants_chart"] = decision.upper().startswith("Y")
 
     if isinstance(content, list):
         content = "\n".join(
