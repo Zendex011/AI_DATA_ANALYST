@@ -162,7 +162,7 @@ except Exception as e:
             raise _extract_structured_error(combined, stderr_fallback=result.stderr)
 
 
-        print("FIGURES:", plt.get_fignums())
+        
         print("OUTPUT EXISTS:", os.path.exists(output_path))
         print("OUTPUT SIZE:",
             os.path.getsize(output_path)
