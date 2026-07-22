@@ -13,6 +13,7 @@ MAX_RETRIES = 1
 
 SQL_RULES = """
 Rules for the SQL you write:
+
 - Only write a single SELECT statement (or a WITH ... SELECT CTE). Never
   write INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, or anything
   that modifies data or schema -- these are rejected before they ever reach
