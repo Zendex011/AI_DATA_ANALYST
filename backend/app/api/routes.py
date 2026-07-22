@@ -239,8 +239,7 @@ def ask_question_async(
         question=req.question,
     )
     db.add(job)
-    print(path)
-    print(os.path.exists(path))
+    
     
     db.commit()
 
@@ -326,8 +325,7 @@ def connect_database(
         schema_summary=schema_summary,
     )
     db.add(db_conn)
-    print(path)
-    print(os.path.exists(path))
+    
     db.commit()
 
     return ConnectDBResponse(
@@ -370,8 +368,8 @@ def ask_database_async(
         question=req.question,
     )
     db.add(job)
-    print(path)
-    print(os.path.exists(path))
+    
+    
     db.commit()
 
     return AskAsyncResponse(job_id=task.id)
