@@ -1,4 +1,4 @@
-  # AI Data Analyst Agent
+  # AI Data Analyst Agent (https://ai-data-analyst-seven-dusky.vercel.app/)
 
 A FastAPI + LangGraph application that lets you:
 - upload a CSV and ask questions in plain English
@@ -17,33 +17,6 @@ The app uses Gemini to generate either pandas code or SQL, then executes it and 
 - Local SQLite persistence by default, with optional Postgres and Redis support via Docker Compose
 - Optional chart generation for supported responses
 
-## Run locally
-
-From the repository root:
-
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env          # then fill in your Gemini API key
-uvicorn app.main:app --reload
-```
-
-Then open:
-
-- http://localhost:8000/docs
-- http://localhost:8000/health
-
-### Windows activation
-
-```powershell
-cd backend
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-copy .env.example .env
-```
 
 ## Environment variables
 
