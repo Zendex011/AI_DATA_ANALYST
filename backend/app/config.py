@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-MAX_CODE_EXEC_SECONDS = int(os.getenv("MAX_CODE_EXEC_SECONDS", "10"))
+MAX_CODE_EXEC_SECONDS = int(os.getenv("MAX_CODE_EXEC_SECONDS", "30"))
 UPLOAD_DIR = os.path.abspath(os.getenv("UPLOAD_DIR", "./uploads"))
 CHART_DIR = os.path.join(UPLOAD_DIR, "charts")
 
