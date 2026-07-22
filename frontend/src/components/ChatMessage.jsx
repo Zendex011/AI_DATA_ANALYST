@@ -19,12 +19,12 @@ function AssistantMessage({ response }) {
           <img
             className="msg-chart"
             src={
-              response.chart_url
-                ? response.chart_url
-                : `data:image/png;base64,${response.chart_base64}`
-            }
-            alt="Generated chart"
-          />
+                response.chart_base64
+                ? `data:image/png;base64,${response.chart_base64}`
+                : `${import.meta.env.VITE_API_URL}${response.chart_url}`
+        }
+          alt="Generated chart"
+        />
         )}
         {response.chart_error && (
           <div className="msg-chart-error">Chart couldn't be generated: {response.chart_error}</div>
