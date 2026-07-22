@@ -204,8 +204,7 @@ def run_db_ask(
         retries_used=final_state["retry_count"],
     )
     db.add(history_entry)
-    print(path)
-    print(os.path.exists(path))
+    
     db.commit()
 
     response_data = {
