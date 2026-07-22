@@ -97,6 +97,10 @@ def test_chart_generation(csv_path: str):
         "plt.title('Average Salary by Department')\n"
         "plt.savefig(output_path)\n"
     )
+    print("="*80)
+    print("GENERATED CHART CODE")
+    print(chart_code)
+    print("="*80)
     b64 = run_chart_code(code, csv_path)
     png_bytes = base64.b64decode(b64)
     assert png_bytes[:8] == b"\x89PNG\r\n\x1a\n", "Output is not a valid PNG"

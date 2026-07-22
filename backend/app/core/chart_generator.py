@@ -161,6 +161,13 @@ except Exception as e:
             combined = (result.stdout or "") + (result.stderr or "")
             raise _extract_structured_error(combined, stderr_fallback=result.stderr)
 
+
+        print("FIGURES:", plt.get_fignums())
+        print("OUTPUT EXISTS:", os.path.exists(output_path))
+        print("OUTPUT SIZE:",
+            os.path.getsize(output_path)
+            if os.path.exists(output_path) else 0)
+
         if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
             raise ChartExecutionError(
                 "NoChartProduced",
