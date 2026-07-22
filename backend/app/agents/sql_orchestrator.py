@@ -7,6 +7,7 @@ from app.core.llm import get_llm
 from app.core.sql_executor import run_sql_query, SQLExecutionError
 from app.core.chart_generator import run_chart_code_to_file, ChartExecutionError
 from app.config import GEMINI_MAX_OUTPUT_TOKENS_CODE, GEMINI_MAX_OUTPUT_TOKENS_TEXT
+from backend.app.agents.orchestrator import _strip_code_fences
 
 MAX_RETRIES = 1
 
@@ -63,7 +64,15 @@ Write a SQL query that answers this question.
 {SQL_RULES}
 """
     response = llm.invoke(prompt)
-    state["generated_sql"] = _strip_code_fences(response.content)
+    content = response.content
+
+    if isinstance(content, list):
+        content = "\n".join(
+            part["text"] if isinstance(part, dict) else str(part)
+            for part in content
+        )
+
+    state["generated_sql"] = _strip_code_fences(content)
     state["retry_count"] = 0
     return state
 
