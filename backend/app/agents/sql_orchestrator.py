@@ -54,7 +54,12 @@ class SQLAgentState(TypedDict):
 
 
 def plan_sql_node(state: SQLAgentState) -> SQLAgentState:
-    llm = get_llm(temperature=0, max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_CODE, api_key=state.get("gemini_api_key"))
+    llm = get_llm(
+        temperature=0,
+        max_output_tokens=GEMINI_MAX_OUTPUT_TOKENS_CODE,
+        api_key=state.get("gemini_api_key"),
+    )
+
     prompt = f"""You are a data analyst. A user connected a database and asked:
 "{state['question']}"
 
@@ -64,21 +69,21 @@ Database schema:
 Write a SQL query that answers this question.
 {SQL_RULES}
 """
+
     response = llm.invoke(prompt)
-    decision = _strip_code_fences(response.content)
-    state["wants_chart"] = decision.upper().startswith("Y")
+
+    content = response.content
 
     if isinstance(content, list):
         content = "\n".join(
-            part["text"] if isinstance(part, dict) else str(part)
+            part.get("text", "") if isinstance(part, dict) else str(part)
             for part in content
         )
 
     state["generated_sql"] = _strip_code_fences(content)
     state["retry_count"] = 0
+
     return state
-
-
 def execute_sql_node(state: SQLAgentState) -> SQLAgentState:
     try:
         result = run_sql_query(state["connection_string"], state["generated_sql"])
@@ -119,7 +124,17 @@ Fix the query so it runs correctly and answers the original question.
 {SQL_RULES}
 """
     response = llm.invoke(prompt)
-    state["generated_sql"] = _strip_code_fences(response.content)
+    response = llm.invoke(prompt)
+
+    content = response.content
+
+    if isinstance(content, list):
+        content = "\n".join(
+            part.get("text", "") if isinstance(part, dict) else str(part)
+            for part in content
+        )
+
+    state["generated_sql"] = _strip_code_fences(content)    
     state["retry_count"] += 1
     return state
 
@@ -165,7 +180,17 @@ a distribution generally DOES.
 Reply with exactly one word: YES or NO.
 """
     response = llm.invoke(prompt)
-    state["wants_chart"] = response.content.strip().upper().startswith("Y")
+    content = response.content
+
+    if isinstance(content, list):
+        content = "\n".join(
+            part.get("text", "") if isinstance(part, dict) else str(part)
+            for part in content
+        )
+
+    decision = _strip_code_fences(content)
+
+    state["wants_chart"] = decision.upper().startswith("Y")
     return state
 
 
@@ -190,7 +215,15 @@ Rules:
 - Return ONLY the code. No explanation, no markdown fences.
 """
     response = llm.invoke(prompt)
-    chart_code = _strip_code_fences(response.content)
+    content = response.content
+
+    if isinstance(content, list):
+        content = "\n".join(
+            part.get("text", "") if isinstance(part, dict) else str(part)
+            for part in content
+        )
+
+    chart_code = _strip_code_fences(content)
 
     tmp_df = pd.DataFrame(state["rows"], columns=state["columns"])
     fd, tmp_csv_path = tempfile.mkstemp(suffix=".csv")
@@ -236,15 +269,26 @@ def _route_after_execute(state: SQLAgentState) -> str:
     return "interpret"
 
 
-def _strip_code_fences(text: str) -> str:
-    text = text.strip()
+def _strip_code_fences(text):
+    if isinstance(text, list):
+        text = "\n".join(
+            part.get("text", "") if isinstance(part, dict) else str(part)
+            for part in text
+        )
+
+    text = str(text).strip()
+
     if text.startswith("```"):
-        lines = text.split("\n")
-        if lines[-1].strip().startswith("```"):
-            lines = lines[1:-1]
-        else:
+        lines = text.splitlines()
+
+        if lines:
             lines = lines[1:]
-        text = "\n".join(lines)
+
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+
+        text = "\n".join(lines).strip()
+
     return text
 
 
@@ -256,7 +300,15 @@ def _finalize_answer(response) -> str:
     version -- kept duplicated rather than shared to avoid a cross-import
     between the two orchestrators for one small helper.
     """
-    text = response.content
+    content = response.content
+
+    if isinstance(content, list):
+        content = "\n".join(
+            part.get("text", "") if isinstance(part, dict) else str(part)
+            for part in content
+        )
+
+    text = str(content)
     finish_reason = None
     try:
         finish_reason = response.response_metadata.get("finish_reason")
